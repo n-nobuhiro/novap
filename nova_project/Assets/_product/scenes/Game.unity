@@ -663,14 +663,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ea3fa6f7d9ade74e80b9eb2ee1607c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player_prefab: {fileID: 154304, guid: 38bc3f55f4776ff40ba73df7c8abd311, type: 3}
-  enemy_prefab: {fileID: 1694388104871626409, guid: 678bf8bc91771fa498236de892b83d1d,
+  _player_prefab: {fileID: 1387812486444388, guid: f2ba9f8f19b9d9d40991a703ad786d00,
     type: 3}
+  _partner_prefab: {fileID: 1694388104871626409, guid: 678bf8bc91771fa498236de892b83d1d,
+    type: 3}
+  _enemy_prefab: {fileID: 100048, guid: 605edd9a7ea592f49b223ffd08e11201, type: 3}
   stage_prefab: {fileID: 1700371774332582409, guid: 5686a690c2dd16b4a82dd5317441036a,
     type: 3}
-  animator_prefab: {fileID: 9100000, guid: dd9c5ce0b62d1c34383bea5da3d0c57d, type: 2}
+  _player_animator_prefab: {fileID: 9100000, guid: dd9c5ce0b62d1c34383bea5da3d0c57d,
+    type: 2}
+  _enemy_animator_prefab: {fileID: 9100000, guid: cee36337cb5147e4cb9a81467f1f6e91,
+    type: 2}
   _player_animator: {fileID: 0}
-  player_object: {fileID: 0}
+  _enemy_animator: {fileID: 0}
+  _player_object: {fileID: 0}
+  _partner_object: {fileID: 0}
+  _enemy_object_list: []
 --- !u!1001 &1679535901
 PrefabInstance:
   m_ObjectHideFlags: 0

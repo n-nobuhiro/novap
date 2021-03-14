@@ -58,13 +58,20 @@ public class UIManager : MonoBehaviour
         FingersScript.Instance.AddGesture(tapGesture);
     }
 
+
+    Vector2 begin_pos;
+
+    Vector2 current_pos;
+
+    //スワイプ操作
     void PanGestureCallback(DigitalRubyShared.GestureRecognizer gesture)
     {
 
         if (gesture.State == GestureRecognizerState.Began)
         {
-        }
-        if (gesture.State == GestureRecognizerState.Executing)
+
+            begin_pos = new Vector2(gesture.FocusX, gesture.FocusY);
+        } else if (gesture.State == GestureRecognizerState.Executing)
         {
             //DebugText("Panned, Location: {0}, {1}, Delta: {2}, {3}", gesture.FocusX, gesture.FocusY, gesture.DeltaX, gesture.DeltaY);
 
@@ -75,9 +82,20 @@ public class UIManager : MonoBehaviour
             //pos.y += deltaY;
             // Earth.transform.position = pos;
 
-            //SpawnManager.Instance.player_object.transform.position = SpawnManager.Instance.player_object.transform.position + new Vector3(deltaX,0, deltaX);
-            _spawn_manager.player_object.transform.position = _spawn_manager.player_object.transform.position + new Vector3(deltaX, 0, deltaY);
+            GameObject player_object = _spawn_manager._player_object;
 
+            //SpawnManager.Instance.player_object.transform.position = SpawnManager.Instance.player_object.transform.position + new Vector3(deltaX,0, deltaX);
+            player_object.transform.position = player_object.transform.position + new Vector3(deltaX, 0, deltaY);
+
+
+            current_pos = new Vector2(gesture.FocusX, gesture.FocusY);
+            float swipe_angle = _spawn_manager.GetAngle(begin_pos, current_pos);
+
+
+
+            player_object.transform.rotation = Quaternion.Euler(0, swipe_angle, 0);
+
+            // 歩きモーション
             _spawn_manager._player_animator.SetBool("is_walk", true);
         }
         else if (gesture.State == GestureRecognizerState.Ended)
@@ -85,6 +103,10 @@ public class UIManager : MonoBehaviour
             _spawn_manager._player_animator.SetBool("is_walk", false);
         }
     }
+
+
+
+
 
 
     int anim_index = 0;
@@ -107,10 +129,46 @@ public class UIManager : MonoBehaviour
             }
 
             print("anim_index = " + anim_index);
+
+
+            // タップして攻撃するときに自動でエネミーの向きにプレイヤーの方向を向ける
+            SetPlayerAutoAimForEnemy();
+
+            _spawn_manager._enemy_animator.SetBool("is_damage", true);
+
+            StartCoroutine(delayAnimation(1.5f));
+
             DebugText("Tapped at {0}, {1}", gesture.FocusX, gesture.FocusY);
             // CreateAsteroid(gesture.FocusX, gesture.FocusY);
         }
     }
+
+
+    IEnumerator delayAnimation(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        print(" delay false");
+
+        _spawn_manager._enemy_animator.SetBool("is_damage", false);
+    }
+
+
+    void SetPlayerAutoAimForEnemy()
+    {
+
+        Vector3 temp_pos = _spawn_manager._player_object.transform.position;
+        Vector2 player_pos = new Vector2(temp_pos.x, temp_pos.z);
+
+
+        temp_pos = _spawn_manager._partner_object.transform.position;
+        Vector2 enemy_pos = new Vector2(temp_pos.x, temp_pos.z);
+
+        float target_angle = _spawn_manager.GetAngle(player_pos, enemy_pos);
+
+        _spawn_manager._player_object.transform.rotation = Quaternion.Euler(0, target_angle, 0);
+    }
+
 
     private void DebugText(string text, params object[] format)
     {
