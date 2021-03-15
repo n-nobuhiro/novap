@@ -26,6 +26,16 @@ public class SpawnManager : MonoBehaviour
 	[SerializeField]
 	RuntimeAnimatorController _enemy_animator_prefab = null;
 
+
+
+	[SerializeField]
+	public GameObject _bullet_prefab = null;
+
+
+	[SerializeField]
+	GameObject _explosion_effect = null;
+
+
 	[HideInInspector]
 	public Animator _player_animator = null;
 
@@ -48,11 +58,7 @@ public class SpawnManager : MonoBehaviour
         CreatePrayer();
 		CreatePartner();
 
-		for (int i = 0; i < 3; i++)
-		{
-			CreateEnemy(i);
-
-		}
+		ResetEnemy();
 
 		CreateStage();
     }
@@ -103,9 +109,21 @@ public class SpawnManager : MonoBehaviour
 		int random_value = UnityEngine.Random.Range(-10, 10);
 		enemy_object.transform.position = new Vector3(2.17f + random_value + formation[i], 0, 70f);
 
+		//MeshCollider enemy_collider = enemy_object.AddComponent<MeshCollider>();
+		BoxCollider enemy_collider = enemy_object.AddComponent<BoxCollider>();
+		Rigidbody enemy_rigidbody = enemy_object.AddComponent<Rigidbody>();
+		enemy_rigidbody.useGravity = false;
+		//enemy_collider.convex = true;
+		enemy_collider.isTrigger = true;
+		enemy_rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+		enemy_collider.size = new Vector3(20, 20, 20);
+
+
 		EnemyController enemy_controller = enemy_object.AddComponent<EnemyController>();
 
 		enemy_controller._player_object = _player_object;
+
+		enemy_controller._spawn_manager = this;
 
 		//_enemy_object.GetComponent<Animator>().runtimeAnimatorController = _enemy_animator_prefab;
 
@@ -114,6 +132,16 @@ public class SpawnManager : MonoBehaviour
 	}
 
 
+	public void ResetEnemy()
+    {
+		_enemy_object_list.Clear();
+
+		for (int i = 0; i < 3; i++)
+		{
+			CreateEnemy(i);
+
+		}
+	}
 
 
 	public void CreateStage() {
@@ -129,5 +157,14 @@ public class SpawnManager : MonoBehaviour
 		float dy = p2.y - p1.y;
 		float rad = Mathf.Atan2(dx, dy);
 		return rad * Mathf.Rad2Deg;
+	}
+
+
+	public GameObject SetExplosinEffect()
+    {
+
+		GameObject explosion_effect_object = Instantiate(_explosion_effect);
+
+		return explosion_effect_object;
 	}
 }

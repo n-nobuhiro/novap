@@ -12,6 +12,11 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     SpawnManager _spawn_manager = null;
 
+    [SerializeField]
+    GameObject[] _ui_canvas_list;
+
+
+
     private TapGestureRecognizer tapGesture;
     private TapGestureRecognizer doubleTapGesture;
     private TapGestureRecognizer tripleTapGesture;
@@ -82,16 +87,18 @@ public class UIManager : MonoBehaviour
             //pos.y += deltaY;
             // Earth.transform.position = pos;
 
+            current_pos = new Vector2(gesture.FocusX, gesture.FocusY);
+
+            Vector2 pos_delta = current_pos - begin_pos;
+
             GameObject player_object = _spawn_manager._player_object;
 
-            //SpawnManager.Instance.player_object.transform.position = SpawnManager.Instance.player_object.transform.position + new Vector3(deltaX,0, deltaX);
-            player_object.transform.position = player_object.transform.position + new Vector3(deltaX, 0, deltaY);
 
+            // プレイヤーを移動させる
+            player_object.transform.position += new Vector3(pos_delta.x, 0, pos_delta.y) /3000;
+            
 
-            current_pos = new Vector2(gesture.FocusX, gesture.FocusY);
             float swipe_angle = _spawn_manager.GetAngle(begin_pos, current_pos);
-
-
 
             player_object.transform.rotation = Quaternion.Euler(0, swipe_angle, 0);
 
@@ -103,9 +110,6 @@ public class UIManager : MonoBehaviour
             _spawn_manager._player_animator.SetBool("is_walk", false);
         }
     }
-
-
-
 
 
 
@@ -128,17 +132,62 @@ public class UIManager : MonoBehaviour
                 anim_index = 0;
             }
 
-            print("anim_index = " + anim_index);
 
-
-            // タップして攻撃するときに自動でエネミーの向きにプレイヤーの方向を向ける
-            SetPlayerAutoAimForEnemy();
 
             _spawn_manager._enemy_animator.SetBool("is_damage", true);
 
+
+
+            GameObject bullet_object = Instantiate(_spawn_manager._bullet_prefab);
+
+            bullet_object.transform.position = _spawn_manager._player_object.transform.position + new Vector3(0, 1.3f, 0);
+            BulletController bullet_controller = bullet_object.AddComponent<BulletController>();
+
+            bullet_controller._target_object = _spawn_manager._enemy_object_list[0];
+
+            bool is_enemy_exist = false;
+
+            foreach(GameObject check_enemy in _spawn_manager._enemy_object_list)
+            {
+                if (check_enemy != null && check_enemy.GetComponent<EnemyController>().is_dead == false) {
+                    bullet_controller._target_object = check_enemy;
+                    is_enemy_exist = true;
+                    break;
+                }
+            }
+
+            if(is_enemy_exist == false)
+            {
+
+                if (_ui_canvas_list[2].activeSelf == false)
+                {
+                    _ui_canvas_list[2].SetActive(true);
+
+                    return;
+                } else
+                {
+                    _ui_canvas_list[2].SetActive(false);
+                    _spawn_manager.ResetEnemy();
+                    return;
+                }
+            }
+
+
+            //MeshCollider bullet_collider = bullet_object.AddComponent<MeshCollider>();
+            BoxCollider bullet_collider = bullet_object.AddComponent<BoxCollider>();
+            Rigidbody bullet_rigidbody = bullet_object.AddComponent<Rigidbody>();
+            bullet_rigidbody.useGravity = false;
+            //bullet_collider.convex = true;
+            bullet_collider.isTrigger = true;
+            bullet_rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            // タップして攻撃するときに自動でエネミーの向きにプレイヤーの方向を向ける
+            SetPlayerAutoAimForEnemy(bullet_controller._target_object);
+
+
             StartCoroutine(delayAnimation(1.5f));
 
-            DebugText("Tapped at {0}, {1}", gesture.FocusX, gesture.FocusY);
+            //DebugText("Tapped at {0}, {1}", gesture.FocusX, gesture.FocusY);
             // CreateAsteroid(gesture.FocusX, gesture.FocusY);
         }
     }
@@ -148,23 +197,22 @@ public class UIManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        print(" delay false");
 
         _spawn_manager._enemy_animator.SetBool("is_damage", false);
     }
 
 
-    void SetPlayerAutoAimForEnemy()
+    void SetPlayerAutoAimForEnemy(GameObject target_object)
     {
 
-        Vector3 temp_pos = _spawn_manager._player_object.transform.position;
+        Vector3 temp_pos = target_object.transform.position;
         Vector2 player_pos = new Vector2(temp_pos.x, temp_pos.z);
 
 
         temp_pos = _spawn_manager._partner_object.transform.position;
         Vector2 enemy_pos = new Vector2(temp_pos.x, temp_pos.z);
 
-        float target_angle = _spawn_manager.GetAngle(player_pos, enemy_pos);
+        float target_angle = _spawn_manager.GetAngle(enemy_pos, player_pos);
 
         _spawn_manager._player_object.transform.rotation = Quaternion.Euler(0, target_angle, 0);
     }
