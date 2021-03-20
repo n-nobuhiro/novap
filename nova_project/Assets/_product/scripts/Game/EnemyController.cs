@@ -12,6 +12,8 @@ public class EnemyController : MonoBehaviour
 
     public bool is_dead = false;
 
+    public Camera _main_camera = null;
+
 
     // Start is called before the first frame update
     void Start()
@@ -19,12 +21,34 @@ public class EnemyController : MonoBehaviour
         
     }
 
+
+    float bullet_generate_interval = 0;
+
     // Update is called once per frame
     void Update()
     {
+        if (transform.position.y <= -100)
+        {
+            is_dead = true;
+        }
+
 
         SetRotationEnemy();
         SetPositionEnemy();
+
+
+        bullet_generate_interval += Time.deltaTime;
+
+        if (SpawnManager.Instance.is_enemy_attack && bullet_generate_interval >= 1.5f)
+        {
+
+            GameObject bullet_object = Instantiate(SpawnManager.Instance._bullet_prefab);
+            // 当たり判定のある銃弾オブジェクトを作成
+            _spawn_manager.SetAttackBulletSetting(bullet_object, gameObject, _main_camera.gameObject, false);
+
+            bullet_generate_interval = 0;
+        }
+       
     }
 
 
@@ -49,13 +73,15 @@ public class EnemyController : MonoBehaviour
 
         float enemy_angle = GetAngle(enemy_pos, player_pos);
         float enemy_pitch = 0;
+        float enemy_roll = 0;
 
-        if(is_dead)
+        if (is_dead)
         {
             enemy_pitch = 45;
+            enemy_roll = 10;
         }
 
-        gameObject.transform.rotation = Quaternion.Euler(enemy_pitch, enemy_angle, 0);
+        gameObject.transform.rotation = Quaternion.Euler(enemy_pitch, enemy_angle, enemy_roll);
 
     }
 
@@ -89,24 +115,50 @@ public class EnemyController : MonoBehaviour
     {
         if(other.gameObject.GetComponent<BulletController>() == null)
         {
-            //return;
+            // 銃弾以外に接触しても以降の死亡処理は実行しない
+            return;
         }
 
-        is_dead = true;
+        if(other.gameObject.GetComponent<BulletController>()._is_player_bullet == false)
+        {
+            // 自分の玉では死亡しない
+            return;
+        }
+
+
         print("Enemy OnTriggerEnter");
 
-        //GameObject effect_object = _spawn_manager.SetExplosinEffect();
-        //effect_object.transform.position = gameObject.transform.position;
+        if (is_dead == true)
+        {
+            return;
+        }
 
+        //effect_object.transform.localScale *= 1.5f;
         StartCoroutine(delayDestroy(2f));
     }
 
 
     IEnumerator delayDestroy(float delay)
     {
+        if(is_dead == true)
+        {
+            yield break;
+        }
+
+        is_dead = true;
+
+        _spawn_manager._enemy_dead_num++;
+
+
+        GameObject effect_object = _spawn_manager.SetExplosinEffect();
+
+
+        effect_object.transform.position = gameObject.transform.position;
+
         yield return new WaitForSeconds(delay);
 
         print("delayDestroy");
+
 
         Destroy(gameObject);
 
