@@ -261,6 +261,18 @@ public class SpawnManager : SingletonMonoBehaviour<SpawnManager>
 	}
 
 
+	public void SetGunBullet()
+    {
+		GameObject target_object = GetTargetEnemy();
+
+
+		GameObject bullet_object = Instantiate(_bullet_prefab);
+		// 当たり判定のある銃弾オブジェクトを作成
+		SetAttackBulletSetting(bullet_object, _main_camera.gameObject, target_object);
+	}
+
+
+
 	public void SetMissile()
     {
 

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,10 +18,37 @@ public class ButtonController : MonoBehaviour
     }
 
 
+    public void AttackGun()
+    {
+        SpawnManager.Instance.SetGunBullet();
+    }
+
+
     public void AttackMissile()
     {
+
+        int num = Convert.ToInt32(UIManager.Instance._missile_num_ui.text);
+
+        if (num <= 0)
+        {
+            return;
+        }
+
         SpawnManager.Instance.SetMissile();
+
+        num = num - 1;
+
+        UIManager.Instance._missile_num_ui.text = Convert.ToString(num);
     }
+
+
+    public void SetLockOn()
+    {
+
+        UIManager.Instance.SetLockOn();
+    }
+
+
 
     public void SetBoost()
     {

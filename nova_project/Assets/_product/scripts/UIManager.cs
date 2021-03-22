@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+using UnityEngine.UI;
 
 // TapGestureRecognizer用の宣言
 using DigitalRubyShared;
@@ -42,8 +43,14 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
     public bool _is_boost = false;
 
 
-    //[SerializeField]
-    //UI.Button _missile_button;
+    [SerializeField]
+    Image _player_hp_ui;
+
+    [SerializeField]
+    public TextMeshProUGUI _missile_num_ui = null;
+
+
+    public float _player_hp = -300;
 
 
     bool is_move = true;
@@ -206,14 +213,9 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
                 _main_camera.transform.rotation = Quaternion.Euler(0, 0, 0);
 
             }
-            
-            GameObject target_object = _spawn_manager.GetTargetEnemy();
 
+            _spawn_manager.SetGunBullet();
 
-            GameObject bullet_object = Instantiate(_spawn_manager._bullet_prefab);
-            // 当たり判定のある銃弾オブジェクトを作成
-            _spawn_manager.SetAttackBulletSetting(bullet_object, _main_camera.gameObject, target_object);
-            
 
             //_main_camera.transform.position = _spawn_manager._player_forward.transform.position;
             //_main_camera.transform.rotation = euler_angle_player;
@@ -350,6 +352,27 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
                 _main_camera.fieldOfView = v;
             }
         }
+    }
+
+
+    public void SetHPbarValue(float player_damage)
+    {
+        
+        RectTransform rt = _player_hp_ui.gameObject.GetComponent(typeof(RectTransform)) as RectTransform;
+        rt.sizeDelta = new Vector2(rt.sizeDelta.x - player_damage, rt.sizeDelta.y);
+
+    }
+
+
+
+    public void SetLockOn()
+    {
+
+        float lockon_x = _spawn_manager.GetTargetEnemy().transform.position.x;
+
+        float lockon_y = _spawn_manager.GetTargetEnemy().transform.position.y;
+
+        _main_camera.transform.position = new Vector3(lockon_x, lockon_y, _main_camera.transform.position.z);
     }
 }
 
