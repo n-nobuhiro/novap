@@ -21,4 +21,19 @@ public class ButtonController : MonoBehaviour
     {
         SpawnManager.Instance.SetMissile();
     }
+
+    public void SetBoost()
+    {
+        print("SetBoost");
+        UIManager.Instance._is_boost = true;
+    }
+
+
+    public void DisableBoost()
+    {
+
+        print("DisableBoost");
+        UIManager.Instance._is_boost = false;
+    }
+
 }

@@ -35,6 +35,8 @@ public class SpawnManager : SingletonMonoBehaviour<SpawnManager>
 	[SerializeField]
 	public GameObject _bullet_prefab = null;
 
+	[SerializeField]
+	public GameObject _missile_prefab = null;
 
 	[SerializeField]
 	GameObject _explosion_effect = null;
@@ -48,6 +50,8 @@ public class SpawnManager : SingletonMonoBehaviour<SpawnManager>
 	public GameObject _dummy_target = null;
 
 	//----------------------------------------------------------------------
+	[HideInInspector]
+	public GameObject stage_object = null;
 
 	[HideInInspector]
 	public Animator _player_animator = null;
@@ -192,7 +196,7 @@ public class SpawnManager : SingletonMonoBehaviour<SpawnManager>
 
 	public void CreateStage() {
 	
-		GameObject stage_object = Instantiate(stage_prefab);
+		stage_object = Instantiate(stage_prefab);
 		//enemy_object.transform.position = new Vector3(0, 0 , 7);
 	}
 
@@ -262,10 +266,13 @@ public class SpawnManager : SingletonMonoBehaviour<SpawnManager>
 
 		print("SetMissile");
 
-		GameObject missile_object = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+		//GameObject missile_object = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
 
-		
+
 		//GameObject missile_object = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+		GameObject missile_object = Instantiate(_missile_prefab);
+
 
 		missile_object.name = "missile_bullet";
 

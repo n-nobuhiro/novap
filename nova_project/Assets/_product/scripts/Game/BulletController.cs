@@ -16,10 +16,12 @@ public class BulletController : MonoBehaviour
     public bool _is_player_bullet = true;
 
 
+    int curve_direction = 0;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        curve_direction = Random.Range(0, 5);
     }
 
     float _destroy_countdown = 0;
@@ -67,11 +69,13 @@ public class BulletController : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log("BulletController 当たった! OnTriggerEnter");
 
         //if (_target_object == other.gameObject)
         if (other.gameObject.GetComponent<EnemyController>() != null && _is_player_bullet == true)
         {
+
+            Debug.Log("BulletController 当たった! OnTriggerEnter");
+
             // 自分自身（弾丸）を削除
             Destroy(gameObject);
         }
@@ -105,7 +109,17 @@ public class BulletController : MonoBehaviour
         }
 
         float player_angle = GetAngle(enemy_pos, player_pos);
-        gameObject.transform.rotation = _start_pos_object.transform.rotation; //Quaternion.Euler(0, player_angle, 0);
+
+        Quaternion target_rotation = _start_pos_object.transform.rotation;
+
+        if (_is_missile)
+        {
+            target_rotation = Quaternion.Euler(90, player_angle, 0);
+
+        }
+
+        gameObject.transform.rotation = target_rotation;
+
 
     }
 
@@ -128,20 +142,52 @@ public class BulletController : MonoBehaviour
             Vector3 EndPos = _target_object.transform.position;
             float easingValueX = Mathf.Lerp(StartPos.x, EndPos.x, rate);
             float easingValueY = Mathf.Lerp(StartPos.y, EndPos.y, rate);
-
-            if (Vector3.Distance(gameObject.transform.position, _target_object.transform.position) >= 0.1f)
-            {
-                easingValueY += 10 * Mathf.Sin(rate * 3.14f);
-            }
-
             float easingValueZ = Mathf.Lerp(StartPos.z, EndPos.z, rate);
 
-            gameObject.transform.position = new Vector3(easingValueX, easingValueY, easingValueZ);
+            gameObject.transform.position = new Vector3(easingValueX, easingValueY, easingValueZ) + AddCureve(rate);
             
         }
         else
         {
             gameObject.transform.position += gameObject.transform.forward * 1.1f;
         }
+    }
+
+
+    Vector3 AddCureve(float rate)
+    {
+
+        Vector3 add_rueve = new Vector3(0, 0, 0);
+
+        if (Vector3.Distance(gameObject.transform.position, _target_object.transform.position) <= 0.1f)
+        {
+            return add_rueve;
+        }
+
+        float curve_value = 10 * Mathf.Sin(rate * 3.14f);
+        switch (curve_direction)
+        {
+            case 0:
+                add_rueve = new Vector3(0, curve_value, 0);
+                break;
+            case 1:
+                add_rueve = new Vector3(curve_value, curve_value, 0);
+                break;
+            case 2:
+                add_rueve = new Vector3(-curve_value, curve_value, 0);
+                break;
+            case 3:
+                add_rueve = new Vector3(curve_value, 0, 0);
+                break;
+            case 4:
+                add_rueve = new Vector3(-curve_value, 0, 0);
+                break;
+            default:
+                break;
+
+        }
+
+        return add_rueve;
+        
     }
 }

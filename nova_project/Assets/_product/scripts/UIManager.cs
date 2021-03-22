@@ -7,7 +7,7 @@ using TMPro;
 // TapGestureRecognizer用の宣言
 using DigitalRubyShared;
 
-public class UIManager : MonoBehaviour
+public class UIManager : SingletonMonoBehaviour<UIManager>
 {
     public enum RotationAxes { MouseXAndY = 0, MouseX = 1, MouseY = 2 }
     public RotationAxes axes = RotationAxes.MouseXAndY;
@@ -38,6 +38,8 @@ public class UIManager : MonoBehaviour
 
     [SerializeField]
     TextMeshProUGUI _score_text = null;
+
+    public bool _is_boost = false;
 
 
     //[SerializeField]
@@ -84,19 +86,31 @@ public class UIManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (_spawn_manager._enemy_dead_num >= 10)
+        {
+            GameClear();
+        }
+
 
         if (is_move == true)
         {
             //SetMainCameraRotationByMouse();
 
+            float move_add = 0.05f;
+
+            if(_is_boost)
+            {
+                move_add = 0.5f;
+            }
+
             //float current_pos = _main_camera.transform.position;
-            _main_camera.transform.position += new Vector3(0, 0, 0.05f) ;
+            _main_camera.transform.position += new Vector3(0, 0, move_add) ;
 
             _score_text.text = "Score " + _spawn_manager._enemy_dead_num;
         }
 
 
-        PinchZoom();
+        //PinchZoom();
     }
 
 
@@ -187,29 +201,13 @@ public class UIManager : MonoBehaviour
         if (gesture.State == GestureRecognizerState.Ended)
         {
 
-
             if (is_move == true)
             {
                 _main_camera.transform.rotation = Quaternion.Euler(0, 0, 0);
 
             }
-
-            //is_move = false;
-
-            //SetAttackMotion();
-
-
-
-
+            
             GameObject target_object = _spawn_manager.GetTargetEnemy();
-
-
- 
-
-            if (_spawn_manager._enemy_dead_num >= 10)
-            {
-                GameClear();
-            }
 
 
             GameObject bullet_object = Instantiate(_spawn_manager._bullet_prefab);
@@ -217,12 +215,11 @@ public class UIManager : MonoBehaviour
             _spawn_manager.SetAttackBulletSetting(bullet_object, _main_camera.gameObject, target_object);
             
 
-
             //_main_camera.transform.position = _spawn_manager._player_forward.transform.position;
             //_main_camera.transform.rotation = euler_angle_player;
 
 
-            StartCoroutine(delayAnimation(0.5f));
+            //StartCoroutine(delayAnimation(0.5f));
 
             //DebugText("Tapped at {0}, {1}", gesture.FocusX, gesture.FocusY);
             // CreateAsteroid(gesture.FocusX, gesture.FocusY);
@@ -239,12 +236,6 @@ public class UIManager : MonoBehaviour
             _ui_canvas_list[2].SetActive(true);
 
             return;
-        }
-        else
-        {
-            _ui_canvas_list[2].SetActive(false);
-
-            //return;
         }
 
     }
@@ -356,7 +347,7 @@ public class UIManager : MonoBehaviour
                 if (v < vMin) v = vMin;
 
                 _main_camera.transform.position = _initialize_camera_position / v;
-
+                _main_camera.fieldOfView = v;
             }
         }
     }
