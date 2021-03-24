@@ -26,7 +26,7 @@ public class FriendController : MonoBehaviour
 
             Debug.Log("Friend Controller 当たった! OnTriggerEnter");
 
-            UIManager.Instance.SetHPbarValue(30);
+            UIManager.Instance.SetHPbarValue(-30);
         }
     }
 

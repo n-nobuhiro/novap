@@ -29,7 +29,9 @@ public class BulletController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(_target_object == null)
+        if(_target_object == null 
+            && _is_missile == false 
+            && _is_player_bullet == false)
         {
             Destroy(gameObject);
             return;
@@ -40,13 +42,13 @@ public class BulletController : MonoBehaviour
 
         bool is_destroy = false;
 
-        if(Vector3.Distance(gameObject.transform.position, _target_object.transform.position) <= 10f)
+        //if(Vector3.Distance(gameObject.transform.position, _target_object.transform.position) <= 10f)
         {
             _destroy_countdown += Time.deltaTime;
         }
 
 
-        if(_destroy_countdown > 2)
+        if(_destroy_countdown > 10)
         {
             is_destroy = true;
         }
@@ -83,7 +85,6 @@ public class BulletController : MonoBehaviour
 
 
 
-
     public float GetAngle(Vector2 p1, Vector2 p2)
     {
         float dx = p2.x - p1.x;
@@ -95,7 +96,9 @@ public class BulletController : MonoBehaviour
 
     void SetBulletRotation()
     {
-        if (_target_object == null || _start_pos_object == null)
+        if (_target_object == null
+            || _start_pos_object == null 
+            || _is_reach_target_pos == true)
         {
             return;
         }
@@ -103,9 +106,9 @@ public class BulletController : MonoBehaviour
         Vector2 enemy_pos = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
         Vector2 player_pos = new Vector2(_target_object.transform.position.x, _target_object.transform.position.z);
 
-        if (Vector3.Distance(player_pos, enemy_pos) <= 60)
+        if (Vector3.Distance(player_pos, enemy_pos) <= 3)
         {
-            //return;
+            return;
         }
 
         float player_angle = GetAngle(enemy_pos, player_pos);
@@ -126,6 +129,7 @@ public class BulletController : MonoBehaviour
 
     float rate = 0;
 
+    bool _is_reach_target_pos = false;
 
     void SetBulletPosition()
     {
@@ -136,6 +140,18 @@ public class BulletController : MonoBehaviour
 
         if (_is_missile)
         {
+
+            if (Vector3.Distance(gameObject.transform.position, _target_object.transform.position) <= 0.1f)
+            {
+                _is_reach_target_pos = true;
+            }
+
+             
+            if(_is_reach_target_pos) {
+                // 目標を通り過ぎあとは追尾せずに直進だけさせる.
+                gameObject.transform.position += gameObject.transform.up;
+                return;
+            }
 
             rate += 0.01f;
             Vector3 StartPos = _start_pos_object.transform.position;

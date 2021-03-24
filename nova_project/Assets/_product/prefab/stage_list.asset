@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ed960005ee86134da9bf97bb325dc79, type: 3}
+  m_Name: stage_list
+  m_EditorClassIdentifier: 
+  item_list:
+  - {fileID: 1700371774332582409, guid: 5686a690c2dd16b4a82dd5317441036a, type: 3}
+  - {fileID: 1700371774332582409, guid: 10061feb3cc27c443a12aef1490f634a, type: 3}
+  - {fileID: 1700371774332582409, guid: 5b6dc35b3d0c9a943b00d274b1f7b497, type: 3}
+  skybox_list: []

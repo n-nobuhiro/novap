@@ -34,6 +34,15 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
     [SerializeField]
     Camera _main_camera;
 
+
+    [SerializeField]
+    GameObject _ui_black_fade = null;
+
+
+    [SerializeField]
+    GameObject _ui_black_fadein = null;
+
+
     [SerializeField]
     GameObject _reticle_cross = null;
 
@@ -49,9 +58,8 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
     [SerializeField]
     public TextMeshProUGUI _missile_num_ui = null;
 
-
-    public float _player_hp = -300;
-
+    public float _player_hp_max = 300;
+    public float _current_player_hp = 300;
 
     bool is_move = true;
 
@@ -86,6 +94,8 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 
 
         PinchInit();
+
+        ResetGame();
     }
 
 
@@ -93,10 +103,6 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
     // Update is called once per frame
     void Update()
     {
-        if (_spawn_manager._enemy_dead_num >= 10)
-        {
-            GameClear();
-        }
 
 
         if (is_move == true)
@@ -113,11 +119,78 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
             //float current_pos = _main_camera.transform.position;
             _main_camera.transform.position += new Vector3(0, 0, move_add) ;
 
+            SetLookAtEnemy();
+
             _score_text.text = "Score " + _spawn_manager._enemy_dead_num;
         }
 
 
         //PinchZoom();
+    }
+
+
+    void ResetGame()
+    {
+
+        _is_gameclear = false;
+        _is_gameclear = false;
+
+        _spawn_manager.ResetEnemy();
+
+        _spawn_manager.CreateStage();
+
+        _score_text.text = "Score " + _spawn_manager._enemy_dead_num;
+
+        _current_player_hp = _player_hp_max;
+
+        _player_hp_ui.fillAmount = _current_player_hp / _player_hp_max;
+
+        _missile_num_ui.text = "6";
+        _ui_canvas_list[(int)GAME_UI.CLEAR].SetActive(false);
+        _ui_canvas_list[(int)GAME_UI.GAMEOVER].SetActive(false);
+
+    }
+
+
+    IEnumerator delayBlackFadeOutResetGame(float delay)
+    {
+
+        _ui_canvas_list[(int)GAME_UI.CLEAR].SetActive(false);
+        _ui_canvas_list[(int)GAME_UI.GAMEOVER].SetActive(false);
+
+        _ui_black_fade.SetActive(true);
+
+        yield return new WaitForSeconds(delay);
+
+        ResetGame();
+
+
+        _ui_black_fadein.SetActive(true);
+        _ui_black_fade.SetActive(false);
+
+
+
+        yield return new WaitForSeconds(delay);
+        _ui_black_fadein.SetActive(false);
+
+        //_spawn_manager._player_animator.SetBool("stand_fire", false);
+        //_spawn_manager._enemy_animator.SetBool("is_damage", false);
+    }
+
+
+
+
+    bool CheckGameEnd()
+    {
+        if(_ui_canvas_list[(int)GAME_UI.CLEAR].activeSelf == true
+           || _ui_canvas_list[(int)GAME_UI.GAMEOVER].activeSelf == true)
+        {
+
+            return true;
+        }
+
+        return false;
+
     }
 
 
@@ -210,12 +283,18 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 
             if (is_move == true)
             {
-                _main_camera.transform.rotation = Quaternion.Euler(0, 0, 0);
+                //_main_camera.transform.rotation = Quaternion.Euler(0, 0, 0);
 
             }
 
             _spawn_manager.SetGunBullet();
 
+
+            if(CheckGameEnd() == true)
+            {
+
+                StartCoroutine(delayBlackFadeOutResetGame(1.5f)); 
+            }
 
             //_main_camera.transform.position = _spawn_manager._player_forward.transform.position;
             //_main_camera.transform.rotation = euler_angle_player;
@@ -229,17 +308,47 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
     }
 
 
+    enum GAME_UI  {
+            TITLE =0,
+            HUD,
+            CLEAR,
+            GAMEOVER
+        };
 
-    void GameClear()
+
+    public bool _is_gameclear = false;
+
+    public bool _is_gameover = false;
+
+
+    public void GameClear()
     {
 
-        if (_ui_canvas_list[2].activeSelf == false)
+        if (_ui_canvas_list[(int)GAME_UI.CLEAR].activeSelf == false)
         {
-            _ui_canvas_list[2].SetActive(true);
+            _spawn_manager.ResetEnemy();
+
+            _is_gameclear = true;
+            _ui_canvas_list[(int)GAME_UI.CLEAR].SetActive(true);
 
             return;
         }
+    }
 
+
+    void GameOver()
+    {
+        
+        if (_ui_canvas_list[(int)GAME_UI.GAMEOVER].activeSelf == false)
+        {
+
+            _spawn_manager.ResetEnemy();
+
+            _is_gameover = true;
+            _ui_canvas_list[(int)GAME_UI.GAMEOVER].SetActive(true);
+
+            return;
+        }
     }
 
 
@@ -357,22 +466,109 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 
     public void SetHPbarValue(float player_damage)
     {
-        
-        RectTransform rt = _player_hp_ui.gameObject.GetComponent(typeof(RectTransform)) as RectTransform;
-        rt.sizeDelta = new Vector2(rt.sizeDelta.x - player_damage, rt.sizeDelta.y);
+
+        _current_player_hp +=  player_damage;
+
+        _player_hp_ui.fillAmount = _current_player_hp / _player_hp_max; 
+        //RectTransform rt = _player_hp_ui.gameObject.GetComponent(typeof(RectTransform)) as RectTransform;
+        //rt.sizeDelta = new Vector2(rt.sizeDelta.x - player_damage, rt.sizeDelta.y);
+
+        if(_current_player_hp <= 0) {
+            GameOver();
+        }
 
     }
 
 
+    bool is_lockon = false;
 
     public void SetLockOn()
     {
+
+        is_lockon = !is_lockon;
+
+        if (is_lockon == false)
+        {
+            _main_camera.transform.rotation = Quaternion.Euler(0, 0, 0);
+            return;
+        }
+
+
+        if(_spawn_manager.GetTargetEnemy() == null)
+        {
+            return;
+        }
+
 
         float lockon_x = _spawn_manager.GetTargetEnemy().transform.position.x;
 
         float lockon_y = _spawn_manager.GetTargetEnemy().transform.position.y;
 
-        _main_camera.transform.position = new Vector3(lockon_x, lockon_y, _main_camera.transform.position.z);
+        //_main_camera.transform.position = new Vector3(lockon_x, lockon_y, _main_camera.transform.position.z);
+
+    }
+
+
+
+    Quaternion SetLookAtEnemy()
+    {
+        if (_spawn_manager.GetTargetEnemy() == null || is_lockon == false)
+        {
+
+            _main_camera.transform.rotation = Quaternion.Euler(0, 0, 0);
+            return Quaternion.Euler(0, 0, 0);
+        }
+
+
+        GameObject _player_object = _spawn_manager._player_object;
+        GameObject enemy_object = _spawn_manager.GetTargetEnemy();
+
+
+        Vector2 enemy_pos_horizon = new Vector2(enemy_object.transform.position.x, enemy_object.transform.position.z);
+        Vector2 player_pos_horizon = new Vector2(_player_object.transform.position.x, _player_object.transform.position.z);
+
+        Vector2 enemy_pos_vertical = new Vector2(enemy_object.transform.position.y, enemy_object.transform.position.x);
+        Vector2 player_pos_vertical = new Vector2(_player_object.transform.position.y, _player_object.transform.position.x);
+
+
+
+        //print("SetRotaionEnemy = " + GetAngle(enemy_pos_vertical, player_pos_vertical));
+        float target_picth = GetAngle(enemy_pos_vertical, player_pos_vertical);
+
+
+        float pitch_limit = 90;
+
+        if (target_picth >= pitch_limit)
+        {
+           // target_picth = pitch_limit;
+        }
+
+
+        if (target_picth <= -pitch_limit)
+        {
+            //target_picth = -pitch_limit;
+        }
+
+        float enemy_angle = GetAngle(player_pos_horizon, enemy_pos_horizon);
+        float enemy_pitch = target_picth;// Mathf.LerpAngle(_player_object.transform.localEulerAngles.x, target_picth, 0.01f);
+        float enemy_roll = 0;
+
+
+        Quaternion target_euler = Quaternion.Euler(enemy_pitch, enemy_angle, enemy_roll);
+
+        _main_camera.transform.rotation = target_euler;
+
+        return target_euler;
+
+    }
+
+
+    public float GetAngle(Vector2 p1, Vector2 p2)
+    {
+        float dx = p2.x - p1.x;
+        float dy = p2.y - p1.y;
+        float rad = Mathf.Atan2(dx, dy);
+        return rad * Mathf.Rad2Deg;
     }
 }
 

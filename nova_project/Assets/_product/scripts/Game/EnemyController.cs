@@ -12,6 +12,8 @@ public class EnemyController : MonoBehaviour
 
     public bool is_dead = false;
 
+    public bool _is_lockon = false;
+
     public Camera _main_camera = null;
 
 
@@ -39,7 +41,10 @@ public class EnemyController : MonoBehaviour
 
         bullet_generate_interval += Time.deltaTime;
 
-        if (SpawnManager.Instance.is_enemy_attack && bullet_generate_interval >= 1.5f)
+        if (SpawnManager.Instance.is_enemy_attack
+            && bullet_generate_interval >= 1.5f
+            //&& Vector3.Distance(gameObject.transform.position, _player_object.transform.position) <= 100
+            )
         {
 
             GameObject bullet_object = Instantiate(SpawnManager.Instance._bullet_prefab);
@@ -63,17 +68,37 @@ public class EnemyController : MonoBehaviour
 
     void SetRotationEnemy()
     {
-        Vector2 enemy_pos = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
-        Vector2 player_pos = new Vector2(_player_object.transform.position.x, _player_object.transform.position.z);
+        Vector2 enemy_pos_horizon = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
+        Vector2 player_pos_horizon = new Vector2(_player_object.transform.position.x, _player_object.transform.position.z);
 
-        if(Vector3.Distance(player_pos, enemy_pos) <= 60 && is_dead == false)
+        Vector2 enemy_pos_vertical = new Vector2(gameObject.transform.position.y, gameObject.transform.position.x );
+        Vector2 player_pos_vertical = new Vector2(_player_object.transform.position.y, _player_object.transform.position.x);
+
+        if (Vector3.Distance(_player_object.transform.position, gameObject.transform.position) <= 60 && is_dead == false)
         {
             return;
         }
 
-        float enemy_angle = GetAngle(enemy_pos, player_pos);
-        float enemy_pitch = 0;
+        //print("SetRotaionEnemy = " + GetAngle(enemy_pos_vertical, player_pos_vertical));
+        float target_picth = -GetAngle(enemy_pos_vertical, player_pos_vertical);
+
+
+        float pitch_limit = 25;
+        if (target_picth >= pitch_limit)
+        {
+            target_picth = pitch_limit;
+        }
+
+
+        if (target_picth <= -pitch_limit)
+        {
+            target_picth = -pitch_limit;
+        }
+
+        float enemy_angle = GetAngle(enemy_pos_horizon, player_pos_horizon);
+        float enemy_pitch = Mathf.LerpAngle(gameObject.transform.localEulerAngles.x , target_picth, 0.01f);
         float enemy_roll = 0;
+
 
         if (is_dead)
         {
@@ -86,6 +111,9 @@ public class EnemyController : MonoBehaviour
     }
 
 
+    bool is_reach_target_pos = false;
+
+
     void SetPositionEnemy()
     {
         Vector2 enemy_pos = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
@@ -93,6 +121,7 @@ public class EnemyController : MonoBehaviour
 
         if (Vector3.Distance(player_pos, enemy_pos) <= 50 && is_dead == false)
         {
+            is_reach_target_pos = true;
             return;
         }
 
@@ -100,9 +129,13 @@ public class EnemyController : MonoBehaviour
         if (is_dead == false)
         {
             gameObject.transform.position += gameObject.transform.forward * 0.1f;
+
+            float target_pos_y = Mathf.LerpAngle(gameObject.transform.position.y, _player_object.transform.position.y , 0.001f);
+
+            gameObject.transform.position = new Vector3(gameObject.transform.position.x, target_pos_y ,gameObject.transform.position.z);
         } else
         {
-            gameObject.transform.position += new Vector3(0 , -0.1f, 0);
+            //gameObject.transform.position += new Vector3(0 , -0.1f, 0);
         }
     }
 
@@ -126,13 +159,18 @@ public class EnemyController : MonoBehaviour
         }
 
 
+
         print("Enemy OnTriggerEnter");
+
+
+
+        gameObject.GetComponent<Rigidbody>().isKinematic = false;
+        gameObject.GetComponent<Rigidbody>().AddForce((-gameObject.transform.up - gameObject.transform.forward) * 2000 );
 
         if (is_dead == true)
         {
             return;
         }
-
         //effect_object.transform.localScale *= 1.5f;
         StartCoroutine(delayDestroy(2f));
     }
@@ -146,14 +184,24 @@ public class EnemyController : MonoBehaviour
         }
 
         is_dead = true;
+        gameObject.GetComponent<Rigidbody>().useGravity = true;
+
 
         _spawn_manager._enemy_dead_num++;
+
+        if (_spawn_manager._enemy_dead_num >= 10)
+        {
+            UIManager.Instance.GameClear();
+        }
 
 
         GameObject effect_object = _spawn_manager.SetExplosinEffect();
 
 
         effect_object.transform.position = gameObject.transform.position;
+
+
+
 
         yield return new WaitForSeconds(delay);
 
