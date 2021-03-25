@@ -527,6 +527,12 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 200825126}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &262187230 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 262187230, guid: 00968b75cde802e4ab9ee7c99ec7894b,
+    type: 3}
+  m_PrefabInstance: {fileID: 5175017967553754048}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &304133342 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 304133342, guid: 00968b75cde802e4ab9ee7c99ec7894b,
@@ -609,6 +615,7 @@ MonoBehaviour:
   - {fileID: 235379715}
   _main_camera: {fileID: 1408851274}
   _ui_black_fade: {fileID: 304133342}
+  _ui_black_fadein: {fileID: 262187230}
   _reticle_cross: {fileID: 1808330392}
   _score_text: {fileID: 1917100760}
   _is_boost: 0
@@ -1096,11 +1103,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: View_gameover
-      objectReference: {fileID: 0}
-    - target: {fileID: 3209393888917143159, guid: ef5be7c977932ce49868e5a9fa0f7157,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4796408848143185831, guid: ef5be7c977932ce49868e5a9fa0f7157,
         type: 3}
@@ -6323,6 +6325,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1904010812}
     m_Modifications:
+    - target: {fileID: 763321807123278393, guid: 00968b75cde802e4ab9ee7c99ec7894b,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -52.19995
+      objectReference: {fileID: 0}
     - target: {fileID: 3209393888917143159, guid: 00968b75cde802e4ab9ee7c99ec7894b,
         type: 3}
       propertyPath: m_Name
